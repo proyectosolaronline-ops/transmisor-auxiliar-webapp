@@ -292,19 +292,15 @@
 
     // ── API ──
 async function apiCall(body) {
-    return new Promise((resolve) => {
-        const callback = 'cb_' + Date.now();
-        window[callback] = (data) => {
-            delete window[callback];
-            document.getElementById('jsonp-container').innerHTML = '';
-            resolve(data);
-        };
-        const url = API_URL + '?callback=' + callback + '&data=' + encodeURIComponent(JSON.stringify(body));
-        const script = document.createElement('script');
-        script.src = url;
-        script.onerror = () => resolve({ ok: false, msg: 'Error de conexión con el servidor.' });
-        document.getElementById('jsonp-container').appendChild(script);
-    });
+    try {
+        const res = await fetch(API_URL, {
+            method: 'POST',
+            body: JSON.stringify(body)
+        });
+        return await res.json();
+    } catch (err) {
+        return { ok: false, msg: 'Error de conexión con el servidor.' };
+    }
 }
     // ── MASTER ACCESS ──
 const PANEL_MASTER_URL = "panel-master.html";
