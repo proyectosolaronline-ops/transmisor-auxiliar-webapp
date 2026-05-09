@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panel Master — EasyLink</title>
+<style>
+:root {
+  --bg: #0f172a; --surface: #1e293b; --border: rgba(255,255,255,0.08);
+  --primary: #a3e635; --purple: #a855f7; --red: #ef4444;
+  --yellow: #f59e0b; --blue: #3b82f6; --green: #22c55e;
+  --muted: #64748b; --text: #f1f5f9;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', Roboto, sans-serif; min-height: 100vh; }
+
+/* TOPBAR */
+.topbar {
+  background: var(--surface); border-bottom: 1px solid var(--border);
+  padding: 14px 20px; display: flex; align-items: center; gap: 12px;
+  position: sticky; top: 0; z-index: 100;
+}
+.topbar-logo { font-size: 1.1rem; font-weight: 900; color: var(--purple); }
+.topbar-sub  { font-size: 0.7rem; color: var(--muted); letter-spacing: 1px; flex: 1; }
+.topbar-badge { background: rgba(168,85,247,0.2); color: var(--purple); border: 1px solid rgba(168,85,247,0.4); font-size: 0.65rem; font-weight: 800; padding: 3px 10px; border-radius: 99px; }
+
+/* TABS */
+.tabs { display: flex; background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 16px; overflow-x: auto; }
+.tab { padding: 14px 18px; font-size: 0.8rem; font-weight: 700; color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent; white-space: nowrap; transition: 0.2s; }
+.tab.active { color: var(--purple); border-bottom-color: var(--purple); }
+
+/* CONTENT */
+.content { padding: 16px; max-width: 900px; margin: 0 auto; }
+
+/* STATS */
+.stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 16px; }
+.stat { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 16px; }
+.stat-label { font-size: 0.65rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+.stat-val { font-size: 1.8rem; font-weight: 900; line-height: 1; }
+.c-green  { color: var(--green); }
+.c-purple { color: var(--purple); }
+.c-yellow { color: var(--yellow); }
+.c-red    { color: var(--red); }
+
+/* SEARCH */
+.search-bar { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 10px 14px; color: var(--text); font-size: 0.9rem; width: 100%; margin-bottom: 12px; }
+.search-bar:focus { outline: none; border-color: var(--purple); }
+
+/* TABLE */
+.tbl-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
+table { width: 100%; border-collapse: collapse; }
+th { padding: 10px 12px; text-align: left; font-size: 0.62rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid var(--border); background: rgba(0,0,0,0.2); }
+td { padding: 12px; font-size: 0.8rem; border-bottom: 1px solid var(--border); vertical-align: middle; }
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: rgba(255,255,255,0.02); }
+
+/* BADGES */
+.badge { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 99px; font-size: 0.65rem; font-weight: 800; letter-spacing: 0.5px; }
+.badge.prueba  { background: rgba(245,158,11,0.15);  color: var(--yellow); border: 1px solid rgba(245,158,11,0.3); }
+.badge.junior  { background: rgba(59,130,246,0.15);  color: var(--blue);   border: 1px solid rgba(59,130,246,0.3); }
+.badge.full    { background: rgba(163,230,53,0.15);  color: var(--primary);border: 1px solid rgba(163,230,53,0.3); }
+.badge.master  { background: rgba(168,85,247,0.15);  color: var(--purple); border: 1px solid rgba(168,85,247,0.3); }
+.badge.activo  { background: rgba(34,197,94,0.15);   color: var(--green);  border: 1px solid rgba(34,197,94,0.3); }
+.badge.inactivo{ background: rgba(239,68,68,0.15);   color: var(--red);    border: 1px solid rgba(239,68,68,0.3); }
+
+/* BTN */
+.btn { padding: 6px 12px; border-radius: 8px; font-size: 0.72rem; font-weight: 700; cursor: pointer; border: none; transition: 0.2s; }
+.btn-edit   { background: rgba(168,85,247,0.2); color: var(--purple); }
+.btn-toggle { background: rgba(239,68,68,0.2);  color: var(--red); }
+.btn-toggle.on { background: rgba(34,197,94,0.2); color: var(--green); }
+.btn:hover  { opacity: 0.8; transform: translateY(-1px); }
+
+/* MODAL */
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 9999; align-items: center; justify-content: center; padding: 20px; }
+.modal-overlay.open { display: flex; }
+.modal { background: var(--surface); border-radius: 20px; padding: 24px; width: 100%; max-width: 360px; border: 1px solid var(--border); }
+.modal-title { font-size: 1rem; font-weight: 900; color: var(--purple); margin-bottom: 16px; }
+.field { margin-bottom: 14px; }
+.field label { display: block; font-size: 0.65rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+.field select, .field input {
+  width: 100%; padding: 10px 12px; background: var(--bg);
+  border: 1px solid var(--border); border-radius: 10px;
+  color: var(--text); font-size: 0.9rem;
+}
+.field select:focus, .field input:focus { outline: none; border-color: var(--purple); }
+.modal-btns { display: flex; gap: 8px; margin-top: 18px; }
+.modal-btns .btn { flex: 1; padding: 10px; font-size: 0.8rem; border-radius: 10px; }
+.btn-save   { background: var(--purple); color: white; }
+.btn-cancel { background: rgba(255,255,255,0.05); color: var(--muted); }
+
+/* LOGS */
+.log-entry { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; margin-bottom: 8px; }
+.log-time  { font-size: 0.65rem; color: var(--muted); margin-bottom: 4px; }
+.log-msg   { font-size: 0.8rem; }
+.log-msg.ok   { color: var(--green); }
+.log-msg.warn { color: var(--yellow); }
+.log-msg.err  { color: var(--red); }
+
+/* EMPTY / SPINNER */
+.empty { text-align: center; padding: 40px 20px; color: var(--muted); font-size: 0.85rem; }
+.spinner { width: 22px; height: 22px; border: 2px solid var(--border); border-top-color: var(--purple); border-radius: 50%; animation: spin 0.6s linear infinite; display: inline-block; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* TOAST */
+#toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); border-radius: 10px; padding: 11px 20px; font-size: 0.8rem; font-weight: 700; z-index: 99999; display: none; white-space: nowrap; }
+#toast.ok   { background: var(--green);  color: #fff; }
+#toast.err  { background: var(--red);    color: #fff; }
+#toast.warn { background: var(--yellow); color: #000; }
+
+.section-sep { margin: 16px 0 10px; font-size: 0.7rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div>
+    <div class="topbar-logo">⚡ EASYLINK</div>
+    <div class="topbar-sub">PANEL MASTER</div>
+  </div>
+  <div style="flex:1"></div>
+  <span class="topbar-badge">⚙️ MASTER</span>
+  <button onclick="cargarTodo()" style="background:rgba(163,230,53,0.1);border:1px solid rgba(163,230,53,0.3);color:var(--primary);border-radius:8px;padding:7px 12px;font-size:0.72rem;font-weight:700;cursor:pointer;margin-left:8px;">↺ Actualizar</button>
+</div>
+
+<!-- TABS -->
+<div class="tabs">
+  <div class="tab active" id="tab-usuarios" onclick="switchTab('usuarios')">👥 Usuarios</div>
+  <div class="tab" id="tab-logs"     onclick="switchTab('logs')">📋 Actividad</div>
+  <div class="tab" id="tab-config"   onclick="switchTab('config')">⚙️ Config</div>
+</div>
+
+<!-- CONTENT -->
+<div class="content">
+
+  <!-- ── USUARIOS ── -->
+  <div id="view-usuarios">
+    <div class="stats" id="stats-wrap">
+      <div class="stat"><div class="stat-label">Total usuarios</div><div class="stat-val c-purple" id="s-total">—</div></div>
+      <div class="stat"><div class="stat-label">Activos</div><div class="stat-val c-green" id="s-activos">—</div></div>
+      <div class="stat"><div class="stat-label">Plan Full/Master</div><div class="stat-val c-yellow" id="s-premium">—</div></div>
+      <div class="stat"><div class="stat-label">Vencidos</div><div class="stat-val c-red" id="s-vencidos">—</div></div>
+    </div>
+
+    <input class="search-bar" id="search-input" placeholder="🔍 Buscar usuario, email o plan..." oninput="filtrarUsuarios()" />
+
+    <div class="tbl-wrap" id="tabla-usuarios">
+      <div class="empty"><div class="spinner"></div></div>
+    </div>
+  </div>
+
+  <!-- ── LOGS ── -->
+  <div id="view-logs" style="display:none">
+    <div class="section-sep">Últimas acciones registradas</div>
+    <div id="logs-wrap"><div class="empty"><div class="spinner"></div></div></div>
+  </div>
+
+  <!-- ── CONFIG ── -->
+  <div id="view-config" style="display:none">
+    <div class="section-sep">Configuración del sistema</div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;">
+      <div class="field">
+        <label>URL API (Apps Script)</label>
+        <input id="cfg-api" type="url" placeholder="https://script.google.com/..." />
+      </div>
+      <div class="field">
+        <label>URL Panel Master</label>
+        <input id="cfg-master-url" type="url" value="panel-master.html" />
+      </div>
+      <button onclick="guardarConfig()" style="background:var(--purple);color:white;border:none;padding:10px 20px;border-radius:10px;font-weight:700;cursor:pointer;width:100%;">💾 Guardar configuración</button>
+      <div style="margin-top:20px;border-top:1px solid var(--border);padding-top:16px;">
+        <div class="section-sep">Acceso rápido</div>
+        <button onclick="window.open('transmisor-owner.html','_blank')" style="background:rgba(163,230,53,0.1);border:1px solid rgba(163,230,53,0.3);color:var(--primary);border-radius:10px;padding:10px 16px;font-weight:700;cursor:pointer;width:100%;font-size:0.85rem;">⚡ Abrir Transmisor Owner</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- MODAL EDITAR USUARIO -->
+<div class="modal-overlay" id="modal-editar">
+  <div class="modal">
+    <div class="modal-title">✏️ Editar Usuario</div>
+    <div style="font-size:0.75rem;color:var(--muted);margin-bottom:16px;" id="modal-usuario-nombre"></div>
+
+    <div class="field">
+      <label>Plan</label>
+      <select id="edit-plan">
+        <option value="prueba">Prueba (7 días)</option>
+        <option value="junior">Junior (30 días)</option>
+        <option value="full">Full (sin vencimiento)</option>
+        <option value="master">Master (sin vencimiento)</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Estado</label>
+      <select id="edit-activo">
+        <option value="true">✅ Activo</option>
+        <option value="false">🚫 Inactivo</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Link de tienda</label>
+      <input id="edit-tienda" type="url" placeholder="https://..." />
+    </div>
+
+    <div class="modal-btns">
+      <button class="btn btn-cancel" onclick="cerrarModal()">Cancelar</button>
+      <button class="btn btn-save"   onclick="guardarUsuario()">💾 Guardar</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ── CONFIG ──
+const API_URL = localStorage.getItem('master_api') ||
+  "https://script.google.com/macros/s/AKfycbwy-6MAyO9KCrYxWiGgc-w3F6ilgqvvHnUAHSEWJDRikFw2MrspTtv0D0fYhl0AVKgO/exec";
+
+let USUARIOS = [];
+let USUARIO_EDITANDO = null;
+let LOGS = [];
+
+// ── INIT ──
+window.addEventListener('load', () => {
+  const apiGuardada = localStorage.getItem('master_api');
+  if (apiGuardada) document.getElementById('cfg-api').value = apiGuardada;
+  cargarTodo();
+});
+
+async function cargarTodo() {
+  await Promise.all([ cargarUsuarios(), cargarLogs() ]);
+}
+
+// ── API ──
+async function apiCall(body) {
+  try {
+    const clean = {};
+    Object.keys(body).forEach(k => {
+      if (body[k] !== undefined && body[k] !== null && body[k] !== '') clean[k] = body[k];
+    });
+    const res  = await fetch(API_URL + '?' + new URLSearchParams(clean), { method: 'GET', redirect: 'follow' });
+    const text = await res.text();
+    try { return JSON.parse(text); }
+    catch(e) { return { ok: false, msg: 'Respuesta inválida: ' + text.substring(0, 80) }; }
+  } catch(e) {
+    return { ok: false, msg: 'Error de conexión.' };
+  }
+}
+
+// ── USUARIOS ──
+async function cargarUsuarios() {
+  document.getElementById('tabla-usuarios').innerHTML = '<div class="empty"><div class="spinner"></div></div>';
+  const res = await apiCall({ accion: 'listarUsuarios' });
+
+  if (!res.ok || !res.usuarios) {
+    document.getElementById('tabla-usuarios').innerHTML =
+      `<div class="empty">⚠️ ${res.msg || 'No se pudo cargar usuarios'}</div>`;
+    return;
+  }
+
+  USUARIOS = res.usuarios;
+  actualizarStats();
+  renderTabla(USUARIOS);
+}
+
+function actualizarStats() {
+  const hoy     = new Date().toISOString().split('T')[0];
+  const activos = USUARIOS.filter(u => String(u.activo) === 'true' || u.activo === true);
+  const premium = USUARIOS.filter(u => u.plan === 'full' || u.plan === 'master');
+  const vencidos = USUARIOS.filter(u => u.vencimiento && u.vencimiento < hoy && u.vencimiento !== '9999-12-31');
+
+  document.getElementById('s-total').textContent   = USUARIOS.length;
+  document.getElementById('s-activos').textContent = activos.length;
+  document.getElementById('s-premium').textContent = premium.length;
+  document.getElementById('s-vencidos').textContent = vencidos.length;
+}
+
+function renderTabla(lista) {
+  if (!lista.length) {
+    document.getElementById('tabla-usuarios').innerHTML = '<div class="empty">Sin usuarios</div>';
+    return;
+  }
+
+  const hoy = new Date().toISOString().split('T')[0];
+
+  const rows = lista.map(u => {
+    const activo   = String(u.activo) === 'true' || u.activo === true;
+    const vencido  = u.vencimiento && u.vencimiento < hoy && u.vencimiento !== '9999-12-31';
+    const venceStr = (!u.vencimiento || u.vencimiento === '9999-12-31') ? '∞' : u.vencimiento;
+
+    return `<tr>
+      <td style="font-weight:700">${esc(u.usuario)}</td>
+      <td style="font-size:0.7rem;color:var(--muted)">${esc(u.email || '—')}</td>
+      <td><span class="badge ${u.plan || 'prueba'}">${(u.plan || 'prueba').toUpperCase()}</span></td>
+      <td><span class="badge ${activo ? 'activo' : 'inactivo'}">${activo ? 'ACTIVO' : 'INACTIVO'}</span></td>
+      <td style="font-size:0.72rem;color:${vencido ? 'var(--red)' : 'var(--muted)'}">${venceStr}</td>
+      <td style="white-space:nowrap;display:flex;gap:6px;">
+        <button class="btn btn-edit"   onclick="abrirEditar('${esc(u.usuario)}')">✏️</button>
+        <button class="btn btn-toggle ${activo ? 'on' : ''}" onclick="toggleActivo('${esc(u.usuario)}', ${activo})">
+          ${activo ? '🔴 Des.' : '🟢 Act.'}
+        </button>
+      </td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('tabla-usuarios').innerHTML = `
+    <table>
+      <thead><tr>
+        <th>Usuario</th><th>Email</th><th>Plan</th><th>Estado</th><th>Vence</th><th>Acciones</th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+}
+
+function filtrarUsuarios() {
+  const q = document.getElementById('search-input').value.toLowerCase();
+  const filtrados = USUARIOS.filter(u =>
+    (u.usuario || '').toLowerCase().includes(q) ||
+    (u.email   || '').toLowerCase().includes(q) ||
+    (u.plan    || '').toLowerCase().includes(q)
+  );
+  renderTabla(filtrados);
+}
+
+// ── EDITAR ──
+function abrirEditar(usuario) {
+  const u = USUARIOS.find(x => x.usuario === usuario);
+  if (!u) return;
+  USUARIO_EDITANDO = u;
+  document.getElementById('modal-usuario-nombre').textContent = '👤 ' + usuario;
+  document.getElementById('edit-plan').value   = u.plan    || 'prueba';
+  document.getElementById('edit-activo').value = String(u.activo) === 'true' ? 'true' : 'false';
+  document.getElementById('edit-tienda').value = u.tienda_url || '';
+  document.getElementById('modal-editar').classList.add('open');
+}
+
+function cerrarModal() {
+  document.getElementById('modal-editar').classList.remove('open');
+  USUARIO_EDITANDO = null;
+}
+
+async function guardarUsuario() {
+  if (!USUARIO_EDITANDO) return;
+  const plan      = document.getElementById('edit-plan').value;
+  const activo    = document.getElementById('edit-activo').value;
+  const tienda    = document.getElementById('edit-tienda').value.trim();
+  const usuario   = USUARIO_EDITANDO.usuario;
+
+  // Guardar plan
+  let r = await apiCall({ accion: 'actualizar', usuario, campo: 'plan', valor: plan });
+  if (!r.ok) { toast('❌ ' + r.msg, 'err'); return; }
+
+  // Guardar activo
+  r = await apiCall({ accion: 'actualizar', usuario, campo: 'activo', valor: activo });
+  if (!r.ok) { toast('❌ ' + r.msg, 'err'); return; }
+
+  // Guardar tienda si cambió
+  if (tienda && tienda !== USUARIO_EDITANDO.tienda_url) {
+    r = await apiCall({ accion: 'actualizar', usuario, campo: 'tienda_url', valor: tienda });
+    if (!r.ok) { toast('❌ ' + r.msg, 'err'); return; }
+  }
+
+  toast('✅ Usuario actualizado', 'ok');
+  cerrarModal();
+  await cargarUsuarios();
+  agregarLog(`✏️ Usuario <b>${usuario}</b> actualizado → plan: ${plan}, activo: ${activo}`);
+}
+
+async function toggleActivo(usuario, estaActivo) {
+  const nuevo = estaActivo ? 'false' : 'true';
+  const res = await apiCall({ accion: 'actualizar', usuario, campo: 'activo', valor: nuevo });
+  if (res.ok) {
+    toast(nuevo === 'true' ? '✅ Usuario activado' : '🚫 Usuario desactivado', 'ok');
+    await cargarUsuarios();
+    agregarLog(`${nuevo === 'true' ? '🟢' : '🔴'} Usuario <b>${usuario}</b> ${nuevo === 'true' ? 'activado' : 'desactivado'}`);
+  } else {
+    toast('❌ ' + res.msg, 'err');
+  }
+}
+
+// ── LOGS ──
+async function cargarLogs() {
+  // Intentar cargar desde backend, si no hay endpoint los mostramos locales
+  const res = await apiCall({ accion: 'obtenerLogs' });
+  if (res.ok && res.logs && res.logs.length) {
+    LOGS = res.logs;
+  }
+  renderLogs();
+}
+
+function agregarLog(msg, tipo = 'ok') {
+  const now = new Date().toLocaleString('es-MX');
+  LOGS.unshift({ time: now, msg, tipo });
+  if (LOGS.length > 100) LOGS.pop();
+  renderLogs();
+}
+
+function renderLogs() {
+  const wrap = document.getElementById('logs-wrap');
+  if (!LOGS.length) {
+    wrap.innerHTML = '<div class="empty">Sin actividad registrada aún</div>';
+    return;
+  }
+  wrap.innerHTML = LOGS.map(l => `
+    <div class="log-entry">
+      <div class="log-time">🕐 ${l.time || '—'}</div>
+      <div class="log-msg ${l.tipo || 'ok'}">${l.msg}</div>
+    </div>`).join('');
+}
+
+// ── CONFIG ──
+function guardarConfig() {
+  const api = document.getElementById('cfg-api').value.trim();
+  if (api) localStorage.setItem('master_api', api);
+  toast('✅ Configuración guardada', 'ok');
+}
+
+// ── TABS ──
+function switchTab(tab) {
+  ['usuarios','logs','config'].forEach(t => {
+    document.getElementById('view-' + t).style.display = t === tab ? '' : 'none';
+    document.getElementById('tab-'  + t).classList.toggle('active', t === tab);
+  });
+  if (tab === 'logs') renderLogs();
+}
+
+// ── UTILS ──
+function esc(s) {
+  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+function toast(msg, tipo) {
+  const el = document.getElementById('toast');
+  el.innerHTML = msg; el.className = tipo; el.style.display = 'block';
+  clearTimeout(el._t);
+  el._t = setTimeout(() => el.style.display = 'none', 3500);
+}
+</script>
+</body>
+</html>
