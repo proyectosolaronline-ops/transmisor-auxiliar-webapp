@@ -303,5 +303,68 @@
         }
     }
 </script>
+    <!-- Botón flotante master -->
+<button onclick="abrirMaster()" style="
+    position: fixed; bottom: 24px; right: 24px;
+    background: #a855f7; color: white; border: none;
+    padding: 12px 18px; border-radius: 99px;
+    font-size: 0.78rem; font-weight: 800; cursor: pointer;
+    box-shadow: 0 8px 24px rgba(168,85,247,0.4);
+    letter-spacing: 1px; z-index: 9999;
+">⚙️ MASTER</button>
+
+<!-- Modal acceso master -->
+<div id="modal-master" style="
+    display:none; position:fixed; inset:0;
+    background: rgba(0,0,0,0.8); z-index: 99999;
+    align-items:center; justify-content:center;
+">
+    <div style="
+        background:#1e293b; padding:2rem; border-radius:20px;
+        width:90%; max-width:360px; text-align:center;
+        border:1px solid rgba(168,85,247,0.3);
+    ">
+        <div style="font-size:1.1rem; font-weight:900; color:#a855f7; margin-bottom:4px;">⚙️ ACCESO MASTER</div>
+        <div style="color:#64748b; font-size:0.75rem; margin-bottom:20px;">Ingresa tu email para recibir el código</div>
+
+        <!-- Paso 1: Email -->
+        <div id="master-paso1">
+            <input id="master-email" type="email" placeholder="Tu email master" style="
+                width:100%; padding:0.85rem; margin-bottom:10px;
+                background:#0f172a; border:1px solid rgba(255,255,255,0.1);
+                border-radius:12px; color:white; font-size:0.9rem; box-sizing:border-box;
+            "/>
+            <button onclick="solicitarCodigo()" style="
+                background:#a855f7; color:white; border:none;
+                padding:0.85rem; border-radius:12px; font-weight:900;
+                font-size:0.85rem; cursor:pointer; width:100%;
+            ">ENVIAR CÓDIGO</button>
+        </div>
+
+        <!-- Paso 2: Código -->
+        <div id="master-paso2" style="display:none;">
+            <div style="color:#94a3b8; font-size:0.78rem; margin-bottom:12px;">
+                Revisa tu email e ingresa el código de 6 dígitos
+            </div>
+            <input id="master-codigo" type="text" placeholder="000000" maxlength="6" style="
+                width:100%; padding:0.85rem; margin-bottom:10px; text-align:center;
+                background:#0f172a; border:1px solid rgba(255,255,255,0.1);
+                border-radius:12px; color:white; font-size:1.4rem; letter-spacing:8px;
+                box-sizing:border-box;
+            "/>
+            <button onclick="verificarCodigo()" style="
+                background:#a855f7; color:white; border:none;
+                padding:0.85rem; border-radius:12px; font-weight:900;
+                font-size:0.85rem; cursor:pointer; width:100%;
+            ">VERIFICAR Y ENTRAR</button>
+        </div>
+
+        <div id="master-msg" style="color:#f87171; font-size:0.78rem; margin-top:10px;"></div>
+        <button onclick="cerrarModal()" style="
+            background:none; border:none; color:#64748b;
+            font-size:0.75rem; cursor:pointer; margin-top:14px; text-decoration:underline;
+        ">Cancelar</button>
+    </div>
+</div>
 </body>
 </html>
