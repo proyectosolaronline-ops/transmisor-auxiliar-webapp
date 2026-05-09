@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transmisor — Live Shopping Pro</title>
+    <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+    <style>
+        :root { --primary: #a3e635; --bg: #0f172a; --accent: #22c55e; }
+        * { box-sizing: border-box; }
+        body { 
+            margin: 0; font-family: 'Segoe UI', Roboto, sans-serif; 
+            background: var(--bg); color: white; 
+            display: flex; flex-direction: column; align-items: center; 
+            justify-content: center; min-height: 100vh;
+        }
+        .card { 
+            background: #1e293b; padding: 2.5rem; border-radius: 24px; 
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5); text-align: center; 
+            width: 90%; max-width: 420px; border: 1px solid rgba(255,255,255,0.1); 
+        }
+        .logo { font-size: 1.4rem; font-weight: 900; color: var(--primary); margin-bottom: 4px; }
+        .subtitle { color: #64748b; font-size: 0.78rem; margin-bottom: 28px; letter-spacing: 1px; }
+        input {
+            width: 100%; padding: 0.9rem 1rem; margin-bottom: 12px;
+            background: #0f172a; border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px; color: white; font-size: 0.95rem;
+        }
+        input:focus { outline: none; border-color: var(--primary); }
+        .btn-primary {
+            background: var(--primary); color: #064e3b; border: none; 
+            padding: 1rem; border-radius: 14px; font-weight: 900; 
+            font-size: 1rem; cursor: pointer; width: 100%; text-transform: uppercase;
+            transition: 0.3s; margin-top: 4px;
+        }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(163,230,53,0.3); }
+        .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+        .btn-primary.live { background: #ef4444; color: white; }
+        .btn-secondary {
+            margin-top: 10px; width: 100%; padding: 0.75rem;
+            background: transparent; border: 1px solid rgba(163,230,53,0.3);
+            color: var(--primary); border-radius: 12px; font-size: 0.8rem;
+            font-weight: 700; cursor: pointer; letter-spacing: 1px;
+        }
+        .btn-link {
+            background: none; border: none; color: #64748b; 
+            font-size: 0.78rem; cursor: pointer; margin-top: 16px; text-decoration: underline;
+        }
+        .status-pill {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 6px 16px; border-radius: 99px; background: rgba(0,0,0,0.3);
+            margin-bottom: 18px; font-size: 0.72rem; font-weight: 700; letter-spacing: 1px;
+        }
+        #status-dot { width: 10px; height: 10px; background: #ef4444; border-radius: 50%; }
+        #status-dot.online { background: var(--primary); box-shadow: 0 0 10px var(--primary); }
+        .link-box { 
+            margin-top: 20px; background: rgba(163,230,53,0.05); 
+            border: 1px solid rgba(163,230,53,0.2); border-radius: 12px; padding: 14px;
+            display: none; text-align: left;
+        }
+        .url-text { 
+            font-family: monospace; font-size: 0.72rem; color: var(--primary); 
+            word-break: break-all; display: block; margin-bottom: 10px;
+        }
+        .copy-btn {
+            background: var(--primary); color: #064e3b; border: none;
+            padding: 5px 12px; border-radius: 6px; font-size: 0.7rem; font-weight: bold; cursor: pointer;
+        }
+        .badge {
+            display: inline-block; padding: 3px 10px; border-radius: 99px;
+            font-size: 0.65rem; font-weight: 800; letter-spacing: 1px; margin-bottom: 16px;
+        }
+        .badge.prueba { background: #f59e0b22; color: #f59e0b; border: 1px solid #f59e0b44; }
+        .badge.junior  { background: #3b82f622; color: #3b82f6; border: 1px solid #3b82f644; }
+        .badge.full    { background: #a3e63522; color: #a3e635; border: 1px solid #a3e63544; }
+        .badge.master  { background: #a855f722; color: #a855f7; border: 1px solid #a855f744; }
+        .msg-error { color: #f87171; font-size: 0.8rem; margin-top: 8px; }
+        .vence-info { color: #64748b; font-size: 0.72rem; margin-bottom: 12px; }
+        #screen-login, #screen-registro, #screen-panel { display: none; }
+    </style>
+</head>
+<body>
+<div class="card">
+
+    <!-- LOGIN -->
+    <div id="screen-login">
+        <div class="logo">⚡ EASYLINK</div>
+        <div class="subtitle">LIVE SHOPPING PRO</div>
+        <input id="login-user" type="text" placeholder="Usuario" />
+        <input id="login-pass" type="password" placeholder="Contraseña" />
+        <button class="btn-primary" onclick="doLogin()">ENTRAR</button>
+        <div id="login-error" class="msg-error"></div>
+        <button class="btn-link" onclick="mostrar('registro')">¿No tienes cuenta? Regístrate gratis</button>
+    </div>
+
+    <!-- REGISTRO -->
+    <div id="screen-registro">
+        <div class="logo">⚡ EASYLINK</div>
+        <div class="subtitle">CREAR CUENTA — 7 DÍAS GRATIS</div>
+        <input id="reg-user" type="text" placeholder="Usuario" />
+        <input id="reg-pass" type="password" placeholder="Contraseña" />
+        <input id="reg-email" type="email" placeholder="Email" />
+        <input id="reg-url" type="url" placeholder="Link de tu tienda (opcional)" />
+        <button class="btn-primary" onclick="doRegistro()">CREAR CUENTA</button>
+        <div id="reg-error" class="msg-error"></div>
+        <button class="btn-link" onclick="mostrar('login')">¿Ya tienes cuenta? Inicia sesión</button>
+    </div>
+
+    <!-- PANEL TRANSMISOR -->
+    <div id="screen-panel">
+        <div class="status-pill">
+            <div id="status-dot"></div>
+            <span id="status-text">CONECTANDO...</span>
+        </div>
+        <div id="plan-badge" class="badge"></div>
+        <div id="vence-text" class="vence-info"></div>
+
+        <button id="btn-action" class="btn-primary" onclick="handleStream()" disabled>Espere...</button>
+        <button class="btn-secondary" onclick="pasteUrl()">📋 PEGAR LINK DE TIENDA</button>
+
+        <div id="link-container" class="link-box">
+            <span style="display:block; font-size:0.7rem; color:#94a3b8; margin-bottom:5px;">LINK PARA EL CLIENTE:</span>
+            <span id="link-url" class="url-text"></span>
+            <button class="copy-btn" onclick="copyUrl()">COPIAR LINK</button>
+        </div>
+
+        <button class="btn-link" onclick="cerrarSesion()">Cerrar sesión</button>
+    </div>
+
+</div>
+
+<script>
+    // ── CONFIG ──
+    const API_URL = "https://script.google.com/macros/s/AKfycbwy-6MAyO9KCrYxWiGgc-w3F6ilgqvvHnUAHSEWJDRikFw2MrspTtv0D0fYhl0AVKgO/exec";
+    const RECEPTOR_FILE = "receptor.html";
+    const DEFAULT_TIENDA = "https://proyectosolaronline-ops.github.io/superOnline-Tienda/index.html?backend=https%3A%2F%2Fscript.google.com%2Fmacros%2Fs%2FAKfycbwQ_ESx2c-3DL83b_-ujjmvevSBGtwjPZ0e1wEHv3cnLbJOplTJDYUb_UiRVyTYXik%2Fexec&store=store_f2fcc889b992";
+
+    let TIENDA_URL = DEFAULT_TIENDA;
+    let peer, localStream, isLive = false;
+    const connections = {};
+    let sesion = null;
+
+    // ── UI ──
+    const btnAction     = document.getElementById('btn-action');
+    const statusDot     = document.getElementById('status-dot');
+    const statusText    = document.getElementById('status-text');
+    const linkContainer = document.getElementById('link-container');
+    const linkUrl       = document.getElementById('link-url');
+
+    function mostrar(screen) {
+        ['login','registro','panel'].forEach(s => 
+            document.getElementById('screen-' + s).style.display = 'none');
+        document.getElementById('screen-' + screen).style.display = 'block';
+    }
+
+    mostrar('login');
+
+    // ── LOGIN ──
+    async function doLogin() {
+        const usuario  = document.getElementById('login-user').value.trim();
+        const password = document.getElementById('login-pass').value.trim();
+        document.getElementById('login-error').textContent = '';
+
+        if (!usuario || !password) {
+            document.getElementById('login-error').textContent = 'Completa todos los campos.';
+            return;
+        }
+
+        const res = await apiCall({ accion: 'login', usuario, password });
+        if (!res.ok) {
+            document.getElementById('login-error').textContent = res.msg;
+            return;
+        }
+
+        sesion = res;
+        TIENDA_URL = res.tienda_url || DEFAULT_TIENDA;
+        iniciarPanel();
+    }
+
+    // ── REGISTRO ──
+    async function doRegistro() {
+        const usuario    = document.getElementById('reg-user').value.trim();
+        const password   = document.getElementById('reg-pass').value.trim();
+        const email      = document.getElementById('reg-email').value.trim();
+        const tienda_url = document.getElementById('reg-url').value.trim() || DEFAULT_TIENDA;
+        document.getElementById('reg-error').textContent = '';
+
+        if (!usuario || !password || !email) {
+            document.getElementById('reg-error').textContent = 'Usuario, contraseña y email son obligatorios.';
+            return;
+        }
+
+        const res = await apiCall({ accion: 'registro', usuario, password, email, tienda_url });
+        if (!res.ok) {
+            document.getElementById('reg-error').textContent = res.msg;
+            return;
+        }
+
+        alert('✅ ' + res.msg);
+        mostrar('login');
+    }
+
+    // ── PANEL ──
+    function iniciarPanel() {
+        mostrar('panel');
+
+        const badge = document.getElementById('plan-badge');
+        badge.textContent = sesion.plan.toUpperCase();
+        badge.className = 'badge ' + sesion.plan;
+
+        if (sesion.plan !== 'master' && sesion.plan !== 'full') {
+            document.getElementById('vence-text').textContent = 
+                `Licencia válida hasta: ${sesion.vencimiento}`;
+        }
+
+        peer = new Peer({
+            config: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] }
+        });
+
+        peer.on('open', (id) => {
+            statusText.textContent = "SISTEMA LISTO";
+            statusDot.className = "online";
+            btnAction.disabled = false;
+            btnAction.textContent = "Transmitir Tienda";
+
+            const baseUrl = window.location.href.substring(0, window.location.href.lastIndexOf("/") + 1);
+            const finalLink = `${baseUrl}${RECEPTOR_FILE}?host=${id}&url=${encodeURIComponent(TIENDA_URL)}`;
+            linkUrl.textContent = finalLink;
+            linkContainer.style.display = 'block';
+        });
+
+        peer.on('connection', (conn) => {
+            connections[conn.peer] = conn;
+            if (isLive && localStream) peer.call(conn.peer, localStream);
+        });
+    }
+
+    // ── STREAM ──
+    async function handleStream() {
+        if (isLive) { location.reload(); return; }
+        try {
+            localStream = await navigator.mediaDevices.getDisplayMedia({
+                video: { frameRate: { ideal: 15, max: 20 } }, audio: false
+            });
+            isLive = true;
+            btnAction.textContent = "Detener Vivo";
+            btnAction.classList.add('live');
+            statusText.textContent = "EN VIVO AHORA";
+            Object.keys(connections).forEach(pid => peer.call(pid, localStream));
+            localStream.getVideoTracks()[0].onended = () => location.reload();
+        } catch (err) {
+            alert("Error: Selecciona la pestaña de la tienda para transmitir.");
+        }
+    }
+
+    // ── PEGAR LINK ──
+    async function pasteUrl() {
+        if (sesion.plan === 'prueba' || sesion.plan === 'junior') {
+            alert("⚠️ Solo disponible en plan Full. Escríbenos para actualizar.");
+            return;
+        }
+        try {
+            const text = await navigator.clipboard.readText();
+            if (text.startsWith("http")) {
+                TIENDA_URL = text.trim();
+                const baseUrl = window.location.href.substring(0, window.location.href.lastIndexOf("/") + 1);
+                const finalLink = `${baseUrl}${RECEPTOR_FILE}?host=${peer.id}&url=${encodeURIComponent(TIENDA_URL)}`;
+                linkUrl.textContent = finalLink;
+                alert("✅ Link actualizado.");
+            } else {
+                alert("⚠️ El texto copiado no es un link válido.");
+            }
+        } catch (err) {
+            alert("❌ Permite el acceso al portapapeles en el navegador.");
+        }
+    }
+
+    function copyUrl() {
+        navigator.clipboard.writeText(linkUrl.textContent);
+        alert("¡Link copiado! Envíalo por WhatsApp.");
+    }
+
+    function cerrarSesion() {
+        sesion = null;
+        if (peer) peer.destroy();
+        location.reload();
+    }
+
+    // ── API ──
+    // FIX: usa GET con URLSearchParams — compatible con Google Apps Script cross-origin
+    async function apiCall(body) {
+        try {
+            // Limpiar valores undefined/null para no mandar campos vacíos
+            const cleanBody = {};
+            Object.keys(body).forEach(k => {
+                if (body[k] !== undefined && body[k] !== null && body[k] !== '') {
+                    cleanBody[k] = body[k];
+                }
+            });
+            const params = new URLSearchParams(cleanBody).toString();
+            const res = await fetch(API_URL + '?' + params, {
+                method: 'GET',
+                redirect: 'follow'
+            });
+            const text = await res.text();
+            try {
+                return JSON.parse(text);
+            } catch(parseErr) {
+                console.error('[apiCall] No se pudo parsear respuesta:', text);
+                return { ok: false, msg: 'Respuesta inválida del servidor.' };
+            }
+        } catch (err) {
+            console.error('[apiCall] Error de red:', err);
+            return { ok: false, msg: 'Error de conexión con el servidor.' };
+        }
+    }
+
+    // ── MASTER ACCESS ──
+    const PANEL_MASTER_URL = "panel-master.html";
+
+    // Guarda el email para reutilizarlo en verificarCodigo
+    let _masterEmail = '';
+
+    function abrirMaster() {
+        document.getElementById('modal-master').style.display = 'flex';
+    }
+
+    function cerrarModal() {
+        document.getElementById('modal-master').style.display = 'none';
+        document.getElementById('master-msg').textContent = '';
+        document.getElementById('master-paso1').style.display = 'block';
+        document.getElementById('master-paso2').style.display = 'none';
+        document.getElementById('master-email').value = '';
+        document.getElementById('master-codigo').value = '';
+        _masterEmail = ''; // limpiar email guardado
+    }
+
+    async function solicitarCodigo() {
+        const email = document.getElementById('master-email').value.trim();
+        const msg   = document.getElementById('master-msg');
+        if (!email) { msg.style.color = '#f87171'; msg.textContent = 'Ingresa tu email.'; return; }
+
+        msg.style.color = '#94a3b8';
+        msg.textContent = 'Enviando...';
+
+        const res = await apiCall({ accion: 'enviarCodigo', email });
+
+        if (res.ok) {
+            // ✅ FIX: guardar email en variable para usarlo en verificarCodigo
+            _masterEmail = email;
+            msg.style.color = '#a3e635';
+            msg.textContent = res.msg;
+            document.getElementById('master-paso1').style.display = 'none';
+            document.getElementById('master-paso2').style.display = 'block';
+            // Limpiar campo código y enfocar
+            document.getElementById('master-codigo').value = '';
+            document.getElementById('master-codigo').focus();
+        } else {
+            msg.style.color = '#f87171';
+            msg.textContent = res.msg || 'Error al enviar el código.';
+        }
+    }
+
+    async function verificarCodigo() {
+        const msg    = document.getElementById('master-msg');
+
+        // ✅ FIX: usar _masterEmail guardado, no releer el input (que puede estar oculto)
+        const email  = _masterEmail || document.getElementById('master-email').value.trim();
+        const codigo = document.getElementById('master-codigo').value.trim();
+
+        if (!email) {
+            msg.style.color = '#f87171';
+            msg.textContent = 'Sesión expirada. Cierra el modal y vuelve a intentarlo.';
+            return;
+        }
+        if (!codigo) {
+            msg.style.color = '#f87171';
+            msg.textContent = 'Ingresa el código.';
+            return;
+        }
+
+        msg.style.color = '#94a3b8';
+        msg.textContent = 'Verificando...';
+
+        // ✅ FIX: enviar email + codigo — sin campos vacíos que confunden al backend
+        const res = await apiCall({ accion: 'verificarCodigo', email, codigo });
+
+        console.log('[verificarCodigo] email:', email, '| codigo:', codigo, '| res:', res);
+
+        if (res.ok) {
+            msg.style.color = '#a3e635';
+            msg.textContent = '✅ Acceso autorizado. Abriendo panel...';
+            setTimeout(() => {
+                window.open(PANEL_MASTER_URL, '_blank');
+                cerrarModal();
+            }, 1000);
+        } else {
+            msg.style.color = '#f87171';
+            msg.textContent = res.msg || 'Código incorrecto o expirado.';
+        }
+    }
+</script>
+
+<!-- Botón flotante master -->
+<button onclick="abrirMaster()" style="
+    position: fixed; bottom: 24px; right: 24px;
+    background: #a855f7; color: white; border: none;
+    padding: 12px 18px; border-radius: 99px;
+    font-size: 0.78rem; font-weight: 800; cursor: pointer;
+    box-shadow: 0 8px 24px rgba(168,85,247,0.4);
+    letter-spacing: 1px; z-index: 9999;
+">⚙️ MASTER</button>
+
+<!-- Modal acceso master -->
+<div id="modal-master" style="
+    display:none; position:fixed; inset:0;
+    background: rgba(0,0,0,0.8); z-index: 99999;
+    align-items:center; justify-content:center;
+">
+    <div style="
+        background:#1e293b; padding:2rem; border-radius:20px;
+        width:90%; max-width:360px; text-align:center;
+        border:1px solid rgba(168,85,247,0.3);
+    ">
+        <div style="font-size:1.1rem; font-weight:900; color:#a855f7; margin-bottom:4px;">⚙️ ACCESO MASTER</div>
+        <div style="color:#64748b; font-size:0.75rem; margin-bottom:20px;">Ingresa tu email para recibir el código</div>
+
+        <!-- Paso 1: Email -->
+        <div id="master-paso1">
+            <input id="master-email" type="email" placeholder="Tu email master" style="
+                width:100%; padding:0.85rem; margin-bottom:10px;
+                background:#0f172a; border:1px solid rgba(255,255,255,0.1);
+                border-radius:12px; color:white; font-size:0.9rem; box-sizing:border-box;
+            "/>
+            <button onclick="solicitarCodigo()" style="
+                background:#a855f7; color:white; border:none;
+                padding:0.85rem; border-radius:12px; font-weight:900;
+                font-size:0.85rem; cursor:pointer; width:100%;
+            ">ENVIAR CÓDIGO</button>
+        </div>
+
+        <!-- Paso 2: Código -->
+        <div id="master-paso2" style="display:none;">
+            <div style="color:#94a3b8; font-size:0.78rem; margin-bottom:12px;">
+                Revisa tu email e ingresa el código de 6 dígitos
+            </div>
+            <input id="master-codigo" type="text" placeholder="000000" maxlength="6" style="
+                width:100%; padding:0.85rem; margin-bottom:10px; text-align:center;
+                background:#0f172a; border:1px solid rgba(255,255,255,0.1);
+                border-radius:12px; color:white; font-size:1.4rem; letter-spacing:8px;
+                box-sizing:border-box;
+            "/>
+            <button onclick="verificarCodigo()" style="
+                background:#a855f7; color:white; border:none;
+                padding:0.85rem; border-radius:12px; font-weight:900;
+                font-size:0.85rem; cursor:pointer; width:100%;
+            ">VERIFICAR Y ENTRAR</button>
+        </div>
+
+        <div id="master-msg" style="color:#f87171; font-size:0.78rem; margin-top:10px;"></div>
+        <button onclick="cerrarModal()" style="
+            background:none; border:none; color:#64748b;
+            font-size:0.75rem; cursor:pointer; margin-top:14px; text-decoration:underline;
+        ">Cancelar</button>
+    </div>
+</div>
+
+</body>
+</html>
