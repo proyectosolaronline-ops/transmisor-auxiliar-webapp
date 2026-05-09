@@ -302,6 +302,64 @@
             return { ok: false, msg: 'Error de conexión con el servidor.' };
         }
     }
+
+    // ── MASTER ACCESS ──
+const PANEL_MASTER_URL = "panel-master.html";
+
+function abrirMaster() {
+    document.getElementById('modal-master').style.display = 'flex';
+}
+function cerrarModal() {
+    document.getElementById('modal-master').style.display = 'none';
+    document.getElementById('master-msg').textContent = '';
+    document.getElementById('master-paso1').style.display = 'block';
+    document.getElementById('master-paso2').style.display = 'none';
+    document.getElementById('master-email').value = '';
+    document.getElementById('master-codigo').value = '';
+}
+
+async function solicitarCodigo() {
+    const email = document.getElementById('master-email').value.trim();
+    const msg   = document.getElementById('master-msg');
+    if (!email) { msg.textContent = 'Ingresa tu email.'; return; }
+
+    msg.style.color = '#94a3b8';
+    msg.textContent = 'Enviando...';
+
+    const res = await apiCall({ accion: 'enviarCodigo', email });
+    if (res.ok) {
+        msg.style.color = '#a3e635';
+        msg.textContent = res.msg;
+        document.getElementById('master-paso1').style.display = 'none';
+        document.getElementById('master-paso2').style.display = 'block';
+    } else {
+        msg.style.color = '#f87171';
+        msg.textContent = res.msg;
+    }
+}
+
+async function verificarCodigo() {
+    const email  = document.getElementById('master-email').value.trim();
+    const codigo = document.getElementById('master-codigo').value.trim();
+    const msg    = document.getElementById('master-msg');
+
+    msg.style.color = '#94a3b8';
+    msg.textContent = 'Verificando...';
+
+    const res = await apiCall({ accion: 'verificarCodigo', email, codigo });
+    if (res.ok) {
+        msg.style.color = '#a3e635';
+        msg.textContent = '✅ Acceso autorizado. Abriendo panel...';
+        setTimeout(() => {
+            window.open(PANEL_MASTER_URL, '_blank');
+            cerrarModal();
+        }, 1000);
+    } else {
+        msg.style.color = '#f87171';
+        msg.textContent = res.msg;
+    }
+}
+    
 </script>
     <!-- Botón flotante master -->
 <button onclick="abrirMaster()" style="
