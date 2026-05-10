@@ -300,7 +300,18 @@ async function apiCall(body) {
             method: 'GET',
             redirect: 'follow'
         });
-
+        const text = await res.text();
+        try {
+            return JSON.parse(text);
+        } catch(parseErr) {
+            console.error('[apiCall] No se pudo parsear respuesta:', text);
+            return { ok: false, msg: 'Respuesta inválida del servidor.' };
+        }
+    } catch (err) {
+        console.error('[apiCall] Error de red:', err);
+        return { ok: false, msg: 'Error de conexión con el servidor.' };
+    }
+}
     // ── MASTER ACCESS ──
     const PANEL_MASTER_URL = "panel-master.html";
 
