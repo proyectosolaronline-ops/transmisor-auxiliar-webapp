@@ -288,33 +288,18 @@
 
     // ── API ──
     // FIX: usa GET con URLSearchParams — compatible con Google Apps Script cross-origin
-    async function apiCall(body) {
-        try {
-            // Limpiar valores undefined/null para no mandar campos vacíos
-            const cleanBody = {};
-            Object.keys(body).forEach(k => {
-                if (body[k] !== undefined && body[k] !== null && body[k] !== '') {
-                    cleanBody[k] = body[k];
-                }
-            });
-         // DESPUÉS
-const params = 'data=' + encodeURIComponent(JSON.stringify(cleanBody));
-const res = await fetch(API_URL + '?' + params, {
-                method: 'GET',
-                redirect: 'follow'
-            });
-            const text = await res.text();
-            try {
-                return JSON.parse(text);
-            } catch(parseErr) {
-                console.error('[apiCall] No se pudo parsear respuesta:', text);
-                return { ok: false, msg: 'Respuesta inválida del servidor.' };
+async function apiCall(body) {
+    try {
+        const cleanBody = {};
+        Object.keys(body).forEach(k => {
+            if (body[k] !== undefined && body[k] !== null && body[k] !== '') {
+                cleanBody[k] = body[k];
             }
-        } catch (err) {
-            console.error('[apiCall] Error de red:', err);
-            return { ok: false, msg: 'Error de conexión con el servidor.' };
-        }
-    }
+        });
+        const res = await fetch(API_URL + '?data=' + encodeURIComponent(JSON.stringify(cleanBody)), {
+            method: 'GET',
+            redirect: 'follow'
+        });
 
     // ── MASTER ACCESS ──
     const PANEL_MASTER_URL = "panel-master.html";
