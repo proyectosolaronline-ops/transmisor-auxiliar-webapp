@@ -297,8 +297,9 @@
                     cleanBody[k] = body[k];
                 }
             });
-            const params = new URLSearchParams(cleanBody).toString();
-            const res = await fetch(API_URL + '?' + params, {
+         // DESPUÉS
+const params = 'data=' + encodeURIComponent(JSON.stringify(cleanBody));
+const res = await fetch(API_URL + '?' + params, {
                 method: 'GET',
                 redirect: 'follow'
             });
